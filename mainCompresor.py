@@ -1,6 +1,3 @@
-from importlib.resources import path
-from pathlib import Path
-
 import time
 
 from burrows_wheeler import *
@@ -22,8 +19,6 @@ def compress(file_path_source:str, file_path_destination:str):
 
     #--------------------------------------------------#
 
-    fileBaseName = Path(file_path_source).name
-    fileName = fileBaseName.split('.')[0]
     fileExtension = 'txt'
 
     #-- File -> Char String

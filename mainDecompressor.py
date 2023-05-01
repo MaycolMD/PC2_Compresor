@@ -1,8 +1,4 @@
-from pathlib import Path
-
 import time
-from tkinter import *
-from tkinter.ttk import Progressbar
 
 from burrows_wheeler import *
 from tree_dataStruct import *
@@ -25,8 +21,6 @@ def decompress(file_path_source:str, file_path_destination:str):
     percent = round((completedTasks / totalTasks) * 100, 1)
 
     #--------------------------------------------------#
-
-    fileName = Path(file_path_source).name.split('.')[0]
 
     #-- File -> Char String
     bitString = readFileToBitString(file_path_source)
