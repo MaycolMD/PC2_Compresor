@@ -12,13 +12,6 @@ def compress(file_path_source:str, file_path_destination:str):
     print("> Compression started")
     start_time = time.time()
 
-    #------------------ PROGRESS BAR ------------------#
-    totalTasks = 10000
-    completedTasks = 0
-    percent = round((completedTasks / totalTasks) * 100, 1)
-
-    #--------------------------------------------------#
-
     fileExtension = 'txt'
 
     #-- File -> Char String
@@ -40,13 +33,9 @@ def compress(file_path_source:str, file_path_destination:str):
     bwCharString = ''
     for offset in range(nBlock):
         bwCharString += bwt(charString[BWT_LENGTH*offset:BWT_LENGTH*(offset+1)])
-        #------------------ PROGRESS BAR ------------------#
-        completedTasks += 500/nBlock
-        percent = round((completedTasks / totalTasks) * 100, 1)
 
-        #--------------------------------------------------#
-    print("- Burrows Weelers Transform Check")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("- Burrows Weelers Transform Check")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Huffman - Markov Orden 1
     #-- based on https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
@@ -91,13 +80,9 @@ def compress(file_path_source:str, file_path_destination:str):
             else:                       newTree = newTree[:index] + [newNode] + newTree[index:]
         # Insert newCodeTree into the huffman tree list
         huffmanTreeList.append(newTree[0])
-        #------------------ PROGRESS BAR ------------------#
-        completedTasks += 6100/256
-        percent = round((completedTasks / totalTasks) * 100, 1)
 
-        #--------------------------------------------------#
-    print("- Huffman - Markov-1stOrd Check")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("- Huffman - Markov-1stOrd Check")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Codification Header
     huffmanCodeMatrix = []
@@ -109,11 +94,6 @@ def compress(file_path_source:str, file_path_destination:str):
             if transitionMatrix[i][j] == 0 :newRowHuffmanCodeMatrix.append('')
             else: newRowHuffmanCodeMatrix.append(codeList[j][1])
         huffmanCodeMatrix.append(newRowHuffmanCodeMatrix)
-        #------------------ PROGRESS BAR ------------------#
-        completedTasks += 200/256
-        percent = round((completedTasks / totalTasks) * 100, 1)
-
-        #--------------------------------------------------#
 
     """
     CharCodes:
@@ -131,11 +111,6 @@ def compress(file_path_source:str, file_path_destination:str):
             headerCodeMatrix += bin(charB)[2:].zfill(8)
             headerCodeMatrix += bin(codeLength)[2:].zfill(5)
             headerCodeMatrix += huffmanCodeMatrix[charA][charB]
-        #------------------ PROGRESS BAR ------------------#
-        completedTasks += 200/256
-        percent = round((completedTasks / totalTasks) * 100, 1)
-
-        #--------------------------------------------------#
 
     #-- Normalize length of HeaderCodeMatrix to bytes. (Completed by 0)
     excessBits = len(headerCodeMatrix) % 8
@@ -143,8 +118,8 @@ def compress(file_path_source:str, file_path_destination:str):
     else:
         lenHeaderCodeMatrix = (len(headerCodeMatrix) // 8) + 1
         headerCodeMatrix += '0' * (8 - excessBits)
-    print("- Code header Check")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("- Code header Check")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- File Codification
     data = ''
@@ -154,11 +129,7 @@ def compress(file_path_source:str, file_path_destination:str):
         charB = ord(bwCharString[nChar])
         data += huffmanCodeMatrix[charA][charB]
         charA = charB
-        #------------------ PROGRESS BAR ------------------#
-        if(nChar % bwBlockProgressBar) == 0:
-            percent += 1
 
-        #--------------------------------------------------#
     data = bin(payload)[2:].zfill(32) + data
 
     #-- Normalize length of CompressData to bytes. (Completed by 0)
@@ -168,8 +139,8 @@ def compress(file_path_source:str, file_path_destination:str):
         lenData = (len(data) // 8) + 1
         data += '0' * (8 - excessBits)
 
-    print(f"- Code data Check [{completedTasks}]")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(f"- Code data Check [{completedTasks}]")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     headerSize = 4 + 4 + 4 + lenHeaderCodeMatrix
     fileSize = headerSize + lenData
@@ -186,12 +157,6 @@ def compress(file_path_source:str, file_path_destination:str):
     compressFile = open(file_to_save,'wb')
     compressFile.write(binaryCompressData)
     compressFile.close()
-
-    #------------------ PROGRESS BAR ------------------#
-    completedTasks = totalTasks
-    percent = round((completedTasks / totalTasks) * 100, 1)
-
-    #--------------------------------------------------#
 
     print("> Compression finished")
     print("--- %s seconds ---" % (time.time() - start_time))

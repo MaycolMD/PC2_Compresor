@@ -1,4 +1,6 @@
-f1 = open('LaBiblia.txt', 'rb')
+import sys
+
+f1 = open(sys.argv[1], 'rb')
 rawdata1 = f1.read()
 f1.close()
 

@@ -15,13 +15,6 @@ def decompress(file_path_source:str, file_path_destination:str):
     start_time = time.time()
 
 
-    #------------------ PROGRESS BAR ------------------#
-    totalTasks = 10000
-    completedTasks = 0
-    percent = round((completedTasks / totalTasks) * 100, 1)
-
-    #--------------------------------------------------#
-
     #-- File -> Char String
     bitString = readFileToBitString(file_path_source)
 
@@ -34,11 +27,8 @@ def decompress(file_path_source:str, file_path_destination:str):
     codeMatrixData = bitString[96:headerSize*8]
     huffmanCodeMatrix = [['' for i in range(N_SYMBOLS)] for j in range(N_SYMBOLS)]
     offset = 0
-    #------------------ PROGRESS BAR ------------------#
     lenCodeMatrixData = len(codeMatrixData)
-    progressStep = lenCodeMatrixData / 300
-    stageProgress = 0
-    #--------------------------------------------------#
+
     while (offset + 21) < lenCodeMatrixData:
         charA = int(codeMatrixData[offset:offset+8],2)
         charB = int(codeMatrixData[offset+8:offset+16],2)
@@ -46,29 +36,18 @@ def decompress(file_path_source:str, file_path_destination:str):
         huffmanCodeMatrix[charA][charB] = codeMatrixData[offset+21:offset+21+codeLength]
         offset += 21 + codeLength
 
-        #------------------ PROGRESS BAR ------------------#
-        if(stageProgress < offset):
-            stageProgress += progressStep
-            completedTasks += 1
-            percent = round((completedTasks / totalTasks) * 100, 1)
-
         #--------------------------------------------------#
-    print(f' Huffman Code Matrix Check [{completedTasks}]')
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(f' Huffman Code Matrix Check [{completedTasks}]')
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     huffmanCodeTreeList = []
     for charA in range(256):
         newTree = Node('')
         for charB in range(256): newTree.insert(huffmanCodeMatrix[charA][charB], chr(charB))
         huffmanCodeTreeList.append(newTree)
-        #------------------ PROGRESS BAR ------------------#
-        if (charA % 50) == 0:
-            completedTasks += 1
-            percent = round((completedTasks / totalTasks) * 100, 1)
 
-        #--------------------------------------------------#
-    print(f' Huffman Code Tree List Check [{completedTasks}]')
-    print("--- %s seconds ---" % (time.time() - start_time))
+#    print(f' Huffman Code Tree List Check [{completedTasks}]')
+#    print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Decompress
     compressedData = bitString[headerSize*8:fileSize*8]
@@ -80,20 +59,9 @@ def decompress(file_path_source:str, file_path_destination:str):
     offset += 32
     bwCharString = ''
     node = huffmanCodeTreeList[0]
-    #------------------ PROGRESS BAR ------------------#
     lenCompressedData = len(compressedData)
-    progressStep = lenCompressedData / 1000
-    stageProgress = 0
-    #--------------------------------------------------#
     while offset < lenCompressedData:
-        #------------------ PROGRESS BAR ------------------#
-        if(stageProgress < offset):
-            stageProgress += progressStep
-            completedTasks += 1
-            percent = round((completedTasks / totalTasks) * 100, 1)
-
         if len(bwCharString) == nBlock*RBW_LENGTH:
-            completedTasks = 1305
             break
         #--------------------------------------------------#
         node = node.next(compressedData[offset])
@@ -103,27 +71,18 @@ def decompress(file_path_source:str, file_path_destination:str):
             bwCharString += node.data
             node = huffmanCodeTreeList[ord(node.data)]
         offset += 1
-    print(' Decode Check')
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(' Decode Check')
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Reverse Burrows Weelers
     nBlock = len(bwCharString) // RBW_LENGTH
-    #------------------ PROGRESS BAR ------------------#
-    progressStep = nBlock / 860
-    stageProgress = 0
-    #--------------------------------------------------#
+
     rbwCharString = ''
     for offset in range(nBlock):
         rbwCharString += rbw(bwCharString[RBW_LENGTH*offset:RBW_LENGTH*(offset+1)])
-        #------------------ PROGRESS BAR ------------------#
-        if(stageProgress < offset):
-            stageProgress += progressStep
-            completedTasks += 10
-            percent = round((completedTasks / totalTasks) * 100, 1)
-
-        #--------------------------------------------------#
-    print(f"- Reverse Burrows Weelers Check [{completedTasks}]")
-    print("--- %s seconds ---" % (time.time() - start_time))
+        
+    #print(f"- Reverse Burrows Weelers Check [{completedTasks}]")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     decompressedData = rbwCharString[:payload]
     # binaryDecompressedData = b''
@@ -149,12 +108,7 @@ def decompress(file_path_source:str, file_path_destination:str):
     decompressedFile.write(binaryDecompressedData)
     decompressedFile.close()
 
-    #------------------ PROGRESS BAR ------------------#
-    completedTasks = 10000
-    percent = 100
-
-    #--------------------------------------------------#
 
 
-    print(f"> Decompression finished [{completedTasks}]")
+    print("> Decompression finished")
     print("--- %s seconds ---" % (time.time() - start_time))
