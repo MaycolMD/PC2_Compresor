@@ -6,7 +6,7 @@ Este proyecto contiene un compresor, un descompresor y un verificador de archivo
 Para ejecutar, es necesario contar con Python 3.19.
 Una vez ubicado desde la terminal en el directorio del proyecto, puede ejecutar lo siguiente:
 
-python compresor.py <NombreArchivo>, para comprimir el archivo. \n
-python descompresor.py, para descomprimir el archivo. \n
+python compresor.py <NombreArchivo>, para comprimir el archivo.
+python descompresor.py, para descomprimir el archivo.
 python verificador.py <NombreArchivo>, para comprobar si el archivo orignal y el descomprimido son el mismo.
 
