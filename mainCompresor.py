@@ -4,9 +4,8 @@ from burrows_wheeler import *
 from tree_dataStruct import *
 from ioFile import *
 
-N_SYMBOLS = 256
-BWT_LENGTH = 256
-RBW_LENGTH = 257
+N_SYMBOLS = 256 # Number of symbols to Huffman frequencies
+BWT_LENGTH = 256 # Block length to Burrows Weeler
 
 def compress(file_path_source:str, file_path_destination:str):
     print("> Compression started")
