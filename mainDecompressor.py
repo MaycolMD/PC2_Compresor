@@ -1,4 +1,5 @@
 import time
+from mpi4py import MPI
 
 from burrows_wheeler import *
 from tree_dataStruct import *
@@ -37,8 +38,7 @@ def decompress(file_path_source:str, file_path_destination:str):
         offset += 21 + codeLength
 
         #--------------------------------------------------#
-    #print(f' Huffman Code Matrix Check [{completedTasks}]')
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     huffmanCodeTreeList = []
     for charA in range(256):
@@ -46,8 +46,8 @@ def decompress(file_path_source:str, file_path_destination:str):
         for charB in range(256): newTree.insert(huffmanCodeMatrix[charA][charB], chr(charB))
         huffmanCodeTreeList.append(newTree)
 
-#    print(f' Huffman Code Tree List Check [{completedTasks}]')
-#    print("--- %s seconds ---" % (time.time() - start_time))
+    print(f' Huffman Code Tree List Check')
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Decompress
     compressedData = bitString[headerSize*8:fileSize*8]
@@ -71,44 +71,44 @@ def decompress(file_path_source:str, file_path_destination:str):
             bwCharString += node.data
             node = huffmanCodeTreeList[ord(node.data)]
         offset += 1
-    #print(' Decode Check')
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    print(' Decode Check')
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Reverse Burrows Weelers
+    # Initialize MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+
+    # Split the data into blocks
     nBlock = len(bwCharString) // RBW_LENGTH
+    block_size = nBlock // size
+    start_index = rank * block_size * RBW_LENGTH
+    end_index = (rank + 1) * block_size * RBW_LENGTH if rank != size - 1 else nBlock * RBW_LENGTH
+    blocks = [bwCharString[start_index:end_index][i:i+RBW_LENGTH] for i in range(0, end_index - start_index, RBW_LENGTH)]
 
+    # Apply RBW transformation on each block
     rbwCharString = ''
-    for offset in range(nBlock):
-        rbwCharString += rbw(bwCharString[RBW_LENGTH*offset:RBW_LENGTH*(offset+1)])
-        
-    #print(f"- Reverse Burrows Weelers Check [{completedTasks}]")
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    for block in blocks:
+        rbwCharString += rbw(block)
 
-    decompressedData = rbwCharString[:payload]
-    # binaryDecompressedData = b''
-    # #------------------ PROGRESS BAR ------------------#
-    # progressStep = payload / 95
-    # stageProgress = 0
-    # #--------------------------------------------------#
-    # for nChar in range(payload):
-    #     #------------------ PROGRESS BAR ------------------#
-    #     if(stageProgress < nChar):
-    #         stageProgress += progressStep
-    #         completedTasks += 1
-    #         percent = round((completedTasks / totalTasks) * 100, 1)
-    #         decompressProgressBar['value'] = percent
-    #         decompressPercentTxt.set(f'{percent}%')
-    #     #--------------------------------------------------#
-    #     binaryDecompressedData += ord(decompressedData[nChar]).to_bytes(1, byteorder='big')
+    # Combine the results from all processes
+    rbwCharString = comm.gather(rbwCharString, root=0)
 
-    binaryDecompressedData = b''.join(ord(x).to_bytes(1, byteorder='big') for x in decompressedData)
+    if rank == 0:
+        rbwCharString = ''.join(rbwCharString)
+        print(f"- Reverse Burrows Weelers Check")
+        print("--- %s seconds ---" % (time.time() - start_time))
+        decompressedData = rbwCharString[:payload]
 
-    file_to_save = file_path_destination
-    decompressedFile = open(file_to_save,'wb')
-    decompressedFile.write(binaryDecompressedData)
-    decompressedFile.close()
+        binaryDecompressedData = b''.join(ord(x).to_bytes(1, byteorder='big') for x in decompressedData)
+
+        file_to_save = file_path_destination
+        decompressedFile = open(file_to_save,'wb')
+        decompressedFile.write(binaryDecompressedData)
+        decompressedFile.close()
 
 
 
-    print("> Decompression finished")
-    print("--- %s seconds ---" % (time.time() - start_time))
+        print("> Decompression finished")
+        print("--- %s seconds ---" % (time.time() - start_time))

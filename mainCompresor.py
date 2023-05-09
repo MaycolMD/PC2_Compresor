@@ -5,6 +5,8 @@ from burrows_wheeler import *
 from tree_dataStruct import *
 from ioFile import *
 
+import os
+
 N_SYMBOLS = 256 # Number of symbols to Huffman frequencies
 BWT_LENGTH = 256 # Block length to Burrows Weeler
 
@@ -58,7 +60,7 @@ def compress(file_path_source:str, file_path_destination:str):
     states_per_process = N_SYMBOLS // size
     start_state = rank * states_per_process
     if rank == size - 1:
-      end_state = N_SYMBOLS
+        end_state = N_SYMBOLS
     else:
         end_state = start_state + states_per_process
 
@@ -109,18 +111,13 @@ def compress(file_path_source:str, file_path_destination:str):
     transition_matrix = comm.gather(local_transition_matrix, root=0)
     huffman_tree_list = comm.gather(local_huffman_tree_list, root=0)
 
-# El proceso raíz combina los resultados de todos los procesos y devuelve el resultado completo
+    # El proceso raíz combina los resultados de todos los procesos y devuelve el resultado completo
     if rank == 0:
     # Combina las matrices de transición para todos los estados iniciales
         transitionMatrix = sum(transition_matrix, [])
     # Combina las listas de árboles de Huffman para todos los estados iniciales
         huffmanTreeList = sum(huffman_tree_list, [])
 
-        #if rank == 0:
-        #for i in range(1, size):
-        #    huffmanTreeList += comm.recv(source=i)
-        #else:
-        #    comm.send(huffmanTreeList, dest=0)
         print("- Huffman - Markov-1stOrd Check")
         print("--- %s seconds ---" % (time.time() - start_time))
 
