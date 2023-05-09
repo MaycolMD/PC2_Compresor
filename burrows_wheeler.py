@@ -10,7 +10,7 @@ def bwt(inputStr:str) -> str:
     Description of what's coming -.-'
     bwMatrix          = [2,3,1,4,5] -> Unsorted list
     sortedBwMatrix    = [1,2,3,4,5] -> Sorted list
-    indexBwMatrix     = [2,0,1,3,4] -> Sorted list (by key) of unsorted list index *kill me*
+    indexBwMatrix     = [2,0,1,3,4] -> Sorted list (by key) of unsorted list index 
     bwPosition        = 1           -> Index in sorted list of the first element in unsorted list
     """
     sortedBwMatrix = sorted(bwMatrix)                                       
