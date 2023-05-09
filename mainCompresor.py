@@ -55,154 +55,66 @@ def compress(file_path_source:str, file_path_destination:str):
 
     # Converting characters and frequencies into huffman tree nodes.
 
+    states_per_process = N_SYMBOLS // size
+    start_state = rank * states_per_process
+    if rank == size - 1:
+      end_state = N_SYMBOLS
+    else:
+        end_state = start_state + states_per_process
+
+    # Inicializa los datos locales de cada proceso
+    local_transition_matrix = []
+    local_huffman_tree_list = []
+
+    # Calcula el código de Huffman para cada estado inicial en la parte asignada
+    for i in range(start_state, end_state):
+    # Nodes list sorted by freq.
+        new_tree = []
+        new_row_transition_matrix = []
+        for j in range(N_SYMBOLS):
+            new_row_transition_matrix.append(markovString.count(chr(i)+chr(j)))
+            new_tree.append(nodeHuff(new_row_transition_matrix[j], chr(j)))
+
+        local_transition_matrix.append(new_row_transition_matrix)
+
+        # Sort all the nodes in ascending order based on their frequency
+        new_tree.sort(key=lambda x: x.freq)
+        # Creation of the hufman tree for the initial state Char(i)
+        while len(new_tree) > 1:
+            # Take the 2 smallest nodes.
+            left = new_tree[0]
+            right = new_tree[1]
+            new_tree = new_tree[2:]
+            # Assign directional value to these nodes
+            left.huff = 0
+            right.huff = 1
+            # Combine the 2 smallest nodes to create new node as their parent
+            new_node = nodeHuff(left.freq+right.freq, left.symbol+right.symbol, left, right)
+            # Searching for the newNode position.
+            index = len(new_tree)
+            for k in range(len(new_tree)):
+                if new_tree[k].freq > new_node.freq:
+                    index = k
+                    break
+            # Insert newNode into the sorted list
+            if index == len(new_tree):
+                new_tree = new_tree[:index] + [new_node]
+            else:
+                new_tree = new_tree[:index] + [new_node] + new_tree[index:]
+
+        # Insert newCodeTree into the huffman tree list
+        local_huffman_tree_list.append(new_tree[0])
+
+# Combinar los resultados de todos los procesos
+    transition_matrix = comm.gather(local_transition_matrix, root=0)
+    huffman_tree_list = comm.gather(local_huffman_tree_list, root=0)
+
+# El proceso raíz combina los resultados de todos los procesos y devuelve el resultado completo
     if rank == 0:
-        pass
-    elif rank == 1:
-        for i in range(63):
-            # Nodes list sorted by freq.
-            newTree = []
-            newRowTransitionMatrix = []
-            for j in range(N_SYMBOLS):
-                newRowTransitionMatrix.append(markovString.count(chr(i)+chr(j)))
-                newTree.append(nodeHuff(newRowTransitionMatrix[j], chr(j)))
-
-            transitionMatrix.append(newRowTransitionMatrix)
-            # Sort all the nodes in ascending order based on their frequency
-            newTree.sort(key=lambda x: x.freq)
-            # Creation of the hufman tree for the initial state Char(i)
-            while len(newTree) > 1:
-                # Take the 2 smallest nodes.
-                left = newTree[0]
-                right = newTree[1]
-                newTree = newTree[2:]
-                # Assign directional value to these nodes
-                left.huff = 0
-                right.huff = 1
-                # Combine the 2 smallest nodes to create new node as their parent
-                newNode = nodeHuff(left.freq+right.freq, left.symbol+right.symbol, left, right)
-                # Searching for the newNode position.
-                index = len(newTree)
-                for k in range(len(newTree)):
-                    if(newTree[k].freq > newNode.freq):
-                        index = k
-                        break
-                # Insert newNode into the sorted list
-                if index == len(newTree):   newTree = newTree[:index] + [newNode]
-                else:                       newTree = newTree[:index] + [newNode] + newTree[index:]
-            # Insert newCodeTree into the huffman tree list
-            comm.send(newTree[0], dest = 0, tag = 1)
-    elif rank == 2:
-        for i in range(64, 127):
-            # Nodes list sorted by freq.
-            newTree = []
-            newRowTransitionMatrix = []
-            for j in range(N_SYMBOLS):
-                newRowTransitionMatrix.append(markovString.count(chr(i)+chr(j)))
-                newTree.append(nodeHuff(newRowTransitionMatrix[j], chr(j)))
-
-            transitionMatrix.append(newRowTransitionMatrix)
-            # Sort all the nodes in ascending order based on their frequency
-            newTree.sort(key=lambda x: x.freq)
-            # Creation of the hufman tree for the initial state Char(i)
-            while len(newTree) > 1:
-                # Take the 2 smallest nodes.
-                left = newTree[0]
-                right = newTree[1]
-                newTree = newTree[2:]
-                # Assign directional value to these nodes
-                left.huff = 0
-                right.huff = 1
-                # Combine the 2 smallest nodes to create new node as their parent
-                newNode = nodeHuff(left.freq+right.freq, left.symbol+right.symbol, left, right)
-                # Searching for the newNode position.
-                index = len(newTree)
-                for k in range(len(newTree)):
-                    if(newTree[k].freq > newNode.freq):
-                        index = k
-                        break
-                # Insert newNode into the sorted list
-                if index == len(newTree):   newTree = newTree[:index] + [newNode]
-                else:                       newTree = newTree[:index] + [newNode] + newTree[index:]
-            # Insert newCodeTree into the huffman tree list
-            comm.send(newTree[0], dest = 0, tag = 2)
-    elif rank == 3:
-        for i in range(128, 191):
-            # Nodes list sorted by freq.
-            newTree = []
-            newRowTransitionMatrix = []
-            for j in range(N_SYMBOLS):
-                newRowTransitionMatrix.append(markovString.count(chr(i)+chr(j)))
-                newTree.append(nodeHuff(newRowTransitionMatrix[j], chr(j)))
-
-            transitionMatrix.append(newRowTransitionMatrix)
-            # Sort all the nodes in ascending order based on their frequency
-            newTree.sort(key=lambda x: x.freq)
-            # Creation of the hufman tree for the initial state Char(i)
-            while len(newTree) > 1:
-                # Take the 2 smallest nodes.
-                left = newTree[0]
-                right = newTree[1]
-                newTree = newTree[2:]
-                # Assign directional value to these nodes
-                left.huff = 0
-                right.huff = 1
-                # Combine the 2 smallest nodes to create new node as their parent
-                newNode = nodeHuff(left.freq+right.freq, left.symbol+right.symbol, left, right)
-                # Searching for the newNode position.
-                index = len(newTree)
-                for k in range(len(newTree)):
-                    if(newTree[k].freq > newNode.freq):
-                        index = k
-                        break
-                # Insert newNode into the sorted list
-                if index == len(newTree):   newTree = newTree[:index] + [newNode]
-                else:                       newTree = newTree[:index] + [newNode] + newTree[index:]
-            # Insert newCodeTree into the huffman tree list
-            comm.send(newTree[0], dest = 0, tag = 3)
-    elif rank == 4:
-        for i in range(192, 256):
-            # Nodes list sorted by freq.
-            newTree = []
-            newRowTransitionMatrix = []
-            for j in range(N_SYMBOLS):
-                newRowTransitionMatrix.append(markovString.count(chr(i)+chr(j)))
-                newTree.append(nodeHuff(newRowTransitionMatrix[j], chr(j)))
-
-            transitionMatrix.append(newRowTransitionMatrix)
-            # Sort all the nodes in ascending order based on their frequency
-            newTree.sort(key=lambda x: x.freq)
-            # Creation of the hufman tree for the initial state Char(i)
-            while len(newTree) > 1:
-                # Take the 2 smallest nodes.
-                left = newTree[0]
-                right = newTree[1]
-                newTree = newTree[2:]
-                # Assign directional value to these nodes
-                left.huff = 0
-                right.huff = 1
-                # Combine the 2 smallest nodes to create new node as their parent
-                newNode = nodeHuff(left.freq+right.freq, left.symbol+right.symbol, left, right)
-                # Searching for the newNode position.
-                index = len(newTree)
-                for k in range(len(newTree)):
-                    if(newTree[k].freq > newNode.freq):
-                        index = k
-                        break
-                # Insert newNode into the sorted list
-                if index == len(newTree):   newTree = newTree[:index] + [newNode]
-                else:                       newTree = newTree[:index] + [newNode] + newTree[index:]
-            # Insert newCodeTree into the huffman tree list
-            comm.send(newTree[0], dest = 0, tag = 4)
-
-    if (rank == 0):
-        aux1 = comm.recv(source = 1, tag = 1)
-        huffmanTreeList.append(aux1)
-        aux2 = comm.recv(source = 2, tag = 2)
-        huffmanTreeList.append(aux2)
-        aux3 = comm.recv(source = 3, tag = 3)
-        huffmanTreeList.append(aux3)
-        aux4 = comm.recv(source = 4, tag = 4)
-        huffmanTreeList.append(aux4)
+    # Combina las matrices de transición para todos los estados iniciales
+        transitionMatrix = sum(transition_matrix, [])
+    # Combina las listas de árboles de Huffman para todos los estados iniciales
+        huffmanTreeList = sum(huffman_tree_list, [])
 
         #if rank == 0:
         #for i in range(1, size):
