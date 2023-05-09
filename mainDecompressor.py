@@ -12,7 +12,7 @@ RBW_LENGTH = 257
 def decompress(file_path_source:str, file_path_destination:str):
 
 
-    print("> Decompression started")
+    #print("> Decompression started")
     start_time = time.time()
 
 
@@ -38,7 +38,7 @@ def decompress(file_path_source:str, file_path_destination:str):
         offset += 21 + codeLength
 
         #--------------------------------------------------#
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     huffmanCodeTreeList = []
     for charA in range(256):
@@ -46,8 +46,8 @@ def decompress(file_path_source:str, file_path_destination:str):
         for charB in range(256): newTree.insert(huffmanCodeMatrix[charA][charB], chr(charB))
         huffmanCodeTreeList.append(newTree)
 
-    print(f' Huffman Code Tree List Check')
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(f' Huffman Code Tree List Check')
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Decompress
     compressedData = bitString[headerSize*8:fileSize*8]
@@ -71,8 +71,8 @@ def decompress(file_path_source:str, file_path_destination:str):
             bwCharString += node.data
             node = huffmanCodeTreeList[ord(node.data)]
         offset += 1
-    print(' Decode Check')
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(' Decode Check')
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Reverse Burrows Weelers
     # Initialize MPI
@@ -97,8 +97,8 @@ def decompress(file_path_source:str, file_path_destination:str):
 
     if rank == 0:
         rbwCharString = ''.join(rbwCharString)
-        print(f"- Reverse Burrows Weelers Check")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print(f"- Reverse Burrows Weelers Check")
+        #print("--- %s seconds ---" % (time.time() - start_time))
         decompressedData = rbwCharString[:payload]
 
         binaryDecompressedData = b''.join(ord(x).to_bytes(1, byteorder='big') for x in decompressedData)
@@ -110,5 +110,5 @@ def decompress(file_path_source:str, file_path_destination:str):
 
 
 
-        print("> Decompression finished")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("> Decompression finished")
+        print(time.time() - start_time)

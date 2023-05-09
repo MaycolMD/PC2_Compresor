@@ -11,14 +11,14 @@ N_SYMBOLS = 256 # Number of symbols to Huffman frequencies
 BWT_LENGTH = 256 # Block length to Burrows Weeler
 
 def compress(file_path_source:str, file_path_destination:str):
-    print("> Compression started")
+    #print("> Compression started")
     start_time = time.time()
 
     fileExtension = 'txt'
 
     #-- File -> Char String
     charString = readFileToCharString(file_path_source)
-    
+
     # payLoad = Number of bytes of information.
     payload = len(charString)
 
@@ -39,8 +39,8 @@ def compress(file_path_source:str, file_path_destination:str):
         bwCharString += bwt(charString[BWT_LENGTH*offset:BWT_LENGTH*(offset+1)])
 
     #print(bwCharString)
-    print("- Burrows Weelers Transform Check")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("- Burrows Weelers Transform Check")
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     #-- Huffman - Markov Orden 1
     #-- based on https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
@@ -118,8 +118,8 @@ def compress(file_path_source:str, file_path_destination:str):
     # Combina las listas de árboles de Huffman para todos los estados iniciales
         huffmanTreeList = sum(huffman_tree_list, [])
 
-        print("- Huffman - Markov-1stOrd Check")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("- Huffman - Markov-1stOrd Check")
+        #print("--- %s seconds ---" % (time.time() - start_time))
 
 
         #-- Codification Header
@@ -134,7 +134,7 @@ def compress(file_path_source:str, file_path_destination:str):
                 if transitionMatrix[i][j] == 0 :newRowHuffmanCodeMatrix.append('')
                 else: newRowHuffmanCodeMatrix.append(codeList[j][1])
             huffmanCodeMatrix.append(newRowHuffmanCodeMatrix)
-        
+
         """
         CharCodes:
             > CharA         : Initial State.
@@ -158,8 +158,8 @@ def compress(file_path_source:str, file_path_destination:str):
         else:
             lenHeaderCodeMatrix = (len(headerCodeMatrix) // 8) + 1
             headerCodeMatrix += '0' * (8 - excessBits)
-        print("- Code header Check")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("- Code header Check")
+        #print("--- %s seconds ---" % (time.time() - start_time))
 
         #-- File Codification
         data = ''
@@ -179,8 +179,8 @@ def compress(file_path_source:str, file_path_destination:str):
             lenData = (len(data) // 8) + 1
             data += '0' * (8 - excessBits)
 
-        print(f"- Code data Check")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print(f"- Code data Check")
+        #print("--- %s seconds ---" % (time.time() - start_time))
 
         headerSize = 4 + 4 + 4 + lenHeaderCodeMatrix
         fileSize = headerSize + lenData
@@ -198,5 +198,5 @@ def compress(file_path_source:str, file_path_destination:str):
         compressFile.write(binaryCompressData)
         compressFile.close()
 
-        print("> Compression finished")
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("> Compression finished")
+        print(time.time() - start_time)
